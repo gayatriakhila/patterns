@@ -1,0 +1,55 @@
+import tensorflow as tf 
+import numpy as np 
+import matplotlib.pyplot as plt 
+from tensorflow.keras.datasets import imdb 
+from tensorflow.keras.preprocessing.sequence import pad_sequences 
+from tensorflow.keras.models import Sequential 
+from tensorflow.keras.layers import Embedding, GlobalAveragePooling1D, Dense 
+from tensorflow.keras.optimizers import Adam
+
+num_words = 10000
+(train_data, train_labels), (test_data, test_labels) = imdb.load_data( num_words=num_words )
+
+print(f"Original length of training data: {len(train_data)}") 
+print(f"Original length of training labels: {len(train_labels)}") 
+print(f"Original length of testing data: {len(test_data)}") 
+print(f"Original length of testing labels: {len(test_labels)}")
+
+maxlen = 256
+train_data = pad_sequences(train_data, maxlen=maxlen, padding='post', truncating='post')
+test_data = pad_sequences(test_data, maxlen=maxlen, padding='post', truncating='post')
+print(f"Shape of padded training data: {train_data.shape}") 
+print(f"Shape of padded testing data: {test_data.shape}")
+model = Sequential() 
+model.add(Embedding(input_dim=num_words, output_dim=128))
+model.add(GlobalAveragePooling1D()) 
+model.add(Dense(16, activation='relu')) 
+model.add(Dense(1, activation='sigmoid'))
+
+model.build(input_shape=(None, maxlen)) 
+model.summary()
+model.compile(optimizer='Adam', loss='binary_crossentropy', metrics=['accuracy']) 
+print("Model compiled successfully. Starting training...")
+history = model.fit( train_data,
+  train_labels,epochs=10, batch_size=32, validation_data=(test_data, test_labels) )
+print("Model training complete. History stored in 'history' variable.")
+test_loss, test_accuracy = model.evaluate(test_data, test_labels) 
+print(f"\nTest Loss: {test_loss:.4f}") 
+print(f"Test Accuracy: {test_accuracy:.4f}")
+plt.figure(figsize=(12, 5)) 
+plt.subplot(1, 2, 1)
+plt.plot(history.history['accuracy'], label='Training Accuracy') 
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy') 
+plt.title('Model Accuracy') 
+plt.xlabel('Epoch') 
+plt.ylabel('Accuracy') 
+plt.legend() 
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'], label='Training Loss') 
+plt.plot(history.history['val_loss'], label='Validation Loss') 
+plt.title('Model Loss') 
+plt.xlabel('Epoch') 
+plt.ylabel('Loss') 
+plt.legend() 
+plt.tight_layout()
+plt.show()
