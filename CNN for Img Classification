@@ -1,0 +1,28 @@
+import tensorflow as tf 
+from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input, decode_predictions 
+from tensorflow.keras.preprocessing import image 
+import numpy as np 
+import matplotlib.pyplot as plt 
+
+print("TensorFlow version:", tf.__version__)
+model = VGG16(weights='imagenet') 
+print("VGG16 model loaded successfully.")
+
+img_path = tf.keras.utils.get_file( 'tiger.jpg', 
+  'http://images.cocodataset.org/test2017/000000000001.jpg',
+  cache_dir='./', cache_subdir='images' )
+img = image.load_img(img_path, target_size=(224, 224))
+x = image.img_to_array(img)
+x = np.expand_dims(x, axis=0)
+x = preprocess_input(x)
+print(f"Image loaded and preprocessed. Input shape: {x.shape}")
+plt.imshow(img) 
+plt.title("Input Image") 
+plt.axis('off') 
+plt.show()
+print("Making predictions...") 
+predictions = model.predict(x)
+decoded_predictions = decode_predictions(predictions, top=3)[0] 
+print("\nTop 3 Predictions:") 
+for i, (imagenet_id, label, score) in enumerate(decoded_predictions): 
+print(f"{i+1}: {label} ({score:.2f}%")
